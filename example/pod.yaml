@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: example-app
+  name: example-app
+spec:
+  containers:
+  - image: example-app:latest
+    name: example-app
+    resources:
+      requests:
+        cpu: 200m
+        memory: 100Mi
+      limits:
+        cpu: 200m
+        memory: 150Mi
+    env:
+    - name: MEMORY_LIMIT
+      valueFrom:
+        resourceFieldRef:
+          containerName: example-app
+          resource: limits.memory
+    imagePullPolicy: Never
