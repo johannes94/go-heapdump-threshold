@@ -1,12 +1,11 @@
 package heapprofiler
 
 import (
+	"fmt"
 	"io/fs"
 	"os"
 	"path"
 	"sort"
-
-	"github.com/pkg/errors"
 )
 
 const (
@@ -22,13 +21,13 @@ func (fd fifoDir) Create(fileName string) (*os.File, error) {
 	err := os.MkdirAll(fd.dirPath, os.ModePerm)
 	if err != nil {
 		if !os.IsExist(err) {
-			return nil, errors.Wrapf(err, "creating directory: %s", fd.dirPath)
+			return nil, fmt.Errorf("%w, creating directory: %s", err, fd.dirPath)
 		}
 	}
 
 	entries, err := os.ReadDir(fd.dirPath)
 	if err != nil {
-		return nil, errors.Wrapf(err, "reading directory: %s", fd.dirPath)
+		return nil, fmt.Errorf("%w, reading directory: %s", err, fd.dirPath)
 	}
 
 	entryInfos, err := dirEntriesToFileInfo(entries)
@@ -44,7 +43,7 @@ func (fd fifoDir) Create(fileName string) (*os.File, error) {
 		rmPath := path.Join(fd.dirPath, entryInfos[0].Name())
 		err := os.Remove(rmPath)
 		if err != nil {
-			return nil, errors.Wrapf(err, "removing file: %s", rmPath)
+			return nil, fmt.Errorf("%w, removing file: %s", err, rmPath)
 		}
 		entryInfos = entryInfos[1:]
 	}
@@ -52,7 +51,7 @@ func (fd fifoDir) Create(fileName string) (*os.File, error) {
 	filePath := path.Join(fd.dirPath, fileName)
 	file, err := os.Create(filePath)
 	if err != nil {
-		return nil, errors.Wrapf(err, "creating file: %s", filePath)
+		return nil, fmt.Errorf("%w, creating file: %s", err, filePath)
 	}
 
 	return file, nil
@@ -63,7 +62,7 @@ func dirEntriesToFileInfo(entries []os.DirEntry) ([]fs.FileInfo, error) {
 	for _, entry := range entries {
 		info, err := entry.Info()
 		if err != nil {
-			return nil, errors.Wrapf(err, "getting dir entry info: %s", entry.Name())
+			return nil, fmt.Errorf("%w, getting dir entry info for: %s", err, entry.Name())
 		}
 
 		entryInfos = append(entryInfos, info)

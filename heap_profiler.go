@@ -8,8 +8,6 @@ import (
 	"runtime"
 	"runtime/pprof"
 	"time"
-
-	"github.com/pkg/errors" // TODO: remove this package and wrap errors in another way
 )
 
 var (
@@ -56,9 +54,9 @@ func NewHeapProfiler(thresholdFraction float64, limitBytes uint64, directory str
 // DumpHeapOnThreshhold runs for as long as ctx is valid, checking heap usage with the given interval.
 // Maximum frequency of creating heap dumps is limited by the configured backoff.
 func (p *HeapProfiler) DumpHeapOnThreshhold(ctx context.Context, interval time.Duration) {
-	ticker := time.NewTicker(interval)
-	defer ticker.Stop()
-	p.dumpHeapOnThreshhold(ctx, ticker.C)
+	p.ticker = time.NewTicker(interval)
+	defer p.ticker.Stop()
+	p.dumpHeapOnThreshhold(ctx, p.ticker.C)
 }
 
 func (p *HeapProfiler) dumpHeapOnThreshhold(ctx context.Context, runCheck <-chan time.Time) {
@@ -68,15 +66,14 @@ func (p *HeapProfiler) dumpHeapOnThreshhold(ctx context.Context, runCheck <-chan
 			return
 		case t := <-runCheck:
 			var mem runtime.MemStats
-			runtime.ReadMemStats(&mem)
-			if float64(mem.Alloc)/float64(p.limitBytes) > p.thresholdFraction {
+			if float64(mem.Sys)/float64(p.limitBytes) > p.thresholdFraction {
 				if time.Since(p.lastDump) < p.backoff {
 					continue // this will skip all code below and jump to start of the for loop
 				}
 				fileName := fmt.Sprintf("%s.dump", t.Format("20060102T15-04-05"))
 				logger.Printf("heap memory usage exceeded threshold, dumping heap profile to: %v", fileName)
 				if err := p.writeHeapProfile(fileName); err != nil {
-					log.Printf("error dumping heap on memory threshold: %s", err)
+					logger.Printf("error dumping heap on memory threshold: %s", err)
 				}
 				p.lastDump = time.Now()
 			}
@@ -87,8 +84,13 @@ func (p *HeapProfiler) dumpHeapOnThreshhold(ctx context.Context, runCheck <-chan
 func (p *HeapProfiler) writeHeapProfile(fileName string) error {
 	file, err := p.directory.Create(fileName)
 	if err != nil {
-		return errors.Wrapf(err, "creating heap dump file at: %s", fileName)
+		return fmt.Errorf("creating heap dump file at: %s, error: %w", fileName, err)
 	}
 
-	return errors.Wrapf(pprof.Lookup("heap").WriteTo(file, 0), "writing heap profile to file at: %s", fileName)
+	err = pprof.Lookup("heap").WriteTo(file, 0)
+	if err != nil {
+		return fmt.Errorf("writing heap profile to file at: %s error: %w", fileName, err)
+	}
+
+	return nil
 }
