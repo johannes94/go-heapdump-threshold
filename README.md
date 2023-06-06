@@ -1,8 +1,8 @@
-# go-heapdump-thresshold
+# go-heapdump-threshold
 
 If a container uses more memory than assigned to it, Kubernetes will kill it with a OOMKilled error. The problem with this is that after the container was killed, it is hard for engineers to debug what caused the unexpected memory usage. This package helps solve this problem.
 
-With `go-heap-dump` you can define a memory limit and a memory thresshold. If the memory consupmtion of your Go application exceeds the thresshold, pprof will be called to dump a memory profile to the filesystem.
+With `go-heap-dump` you can define a memory limit and a memory threshold. If the memory consupmtion of your Go application exceeds the threshold, pprof will be called to dump a memory profile to the filesystem.
 
 ## Usage
 
@@ -25,7 +25,7 @@ if err != nil {
 // - Wait for 1 Minute once a heap profile was written before writing another one
 heapProfiler := heapprofiler.NewHeapProfiler(0.80, limit, "./dump", 1*time.Minute)
 
-// Start a background process that checks the thresshold every 30 seconds and dumps a heap profile if necessary
+// Start a background process that checks the threshold every 30 seconds and dumps a heap profile if necessary
 ctx := context.Background()
 go heapProfiler.DumpHeapOnThreshhold(ctx, 30*time.Second)
 ```

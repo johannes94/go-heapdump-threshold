@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	heapprofiler "github.com/johannes94/go-heapdump-thresshold"
+	heapprofiler "github.com/johannes94/go-heapdump-threshold"
 )
 
 func main() {
@@ -29,7 +29,7 @@ func main() {
 
 	ctx := context.Background()
 
-	// Start a background process that checks the thresshold every 30 seconds and dumps a heap profile if necessary
+	// Start a background process that checks the threshold every 30 seconds and dumps a heap profile if necessary
 	go heapProfiler.DumpHeapOnThreshhold(ctx, 30*time.Second)
 
 	// Start your other processes e. g. a HTTP listener

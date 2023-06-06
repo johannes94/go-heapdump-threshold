@@ -1,4 +1,4 @@
-module github.com/johannes94/go-heapdump-thresshold
+module github.com/johannes94/go-heapdump-threshold
 
 go 1.18
 
