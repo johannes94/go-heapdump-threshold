@@ -8,4 +8,3 @@ WORKDIR src
 RUN go build -o /bin/example-app example/main.go
 
 ENTRYPOINT /bin/example-app
-

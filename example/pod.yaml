@@ -22,3 +22,10 @@ spec:
           containerName: example-app
           resource: limits.memory
     imagePullPolicy: Never
+    volumeMounts:
+      - mountPath: ./dump
+        name: dump
+  volumes:
+  - name: dump
+    emptyDir: {}
+    
