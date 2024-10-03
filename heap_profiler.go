@@ -66,6 +66,7 @@ func (p *HeapProfiler) dumpHeapOnThreshhold(ctx context.Context, runCheck <-chan
 			return
 		case t := <-runCheck:
 			var mem runtime.MemStats
+			runtime.ReadMemStats(&mem)
 			if float64(mem.Sys)/float64(p.limitBytes) > p.thresholdFraction {
 				if time.Since(p.lastDump) < p.backoff {
 					continue // this will skip all code below and jump to start of the for loop
